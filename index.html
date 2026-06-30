@@ -243,8 +243,7 @@
   ::-webkit-scrollbar-track{background:var(--bg);}
   ::-webkit-scrollbar-thumb{background:var(--line); border-radius:5px;}
 
-  [data-animate]{opacity:0; transform:translateY(14px); transition:opacity .6s ease, transform .6s ease;}
-  [data-animate].in{opacity:1; transform:translateY(0);}
+  [data-animate]{opacity:1;}
 
   @media (max-width:600px){
     nav{display:none;}
@@ -487,23 +486,12 @@
     if(savedAccent) setAccent(savedAccent);
   }catch(e){}
 
-  // skill bars on scroll
-  const bars = document.querySelectorAll('.bar-fill');
-  const animTargets = document.querySelectorAll('[data-animate]');
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if(entry.isIntersecting){
-        entry.target.classList.add('in');
-        if(entry.target.classList.contains('skill-card')){
-          const fill = entry.target.querySelector('.bar-fill');
-          if(fill) fill.style.width = fill.dataset.w + '%';
-        }
-        io.unobserve(entry.target);
-      }
+  // skill bars fill shortly after load (no scroll-dependency, works reliably on all devices)
+  window.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.bar-fill').forEach((fill, i) => {
+      setTimeout(() => { fill.style.width = fill.dataset.w + '%'; }, 200 + i * 90);
     });
-  }, {threshold:0.2});
-  animTargets.forEach(el => io.observe(el));
-  document.querySelectorAll('.skill-card').forEach(el => io.observe(el));
+  });
 </script>
 </body>
 </html>
