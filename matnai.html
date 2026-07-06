@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MatnAI — Matnni tahlil qiling, tinglang</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root[data-theme="dark"]{
+    --bg:#0b0c0f;
+    --bg-soft:#101116;
+    --surface:#16171d;
+    --surface-2:#1c1e26;
+    --border:#272a33;
+    --text:#eef0f3;
+    --text-dim:#8b8f9c;
+    --text-faint:#5b5f6b;
+    --accent:#7c6cff;
+    --accent-2:#54e6c1;
+    --accent-soft:rgba(124,108,255,.16);
+    --danger:#ff6b6b;
+    --shadow: 0 20px 50px rgba(0,0,0,.35);
+  }
+  :root[data-theme="light"]{
+    --bg:#f6f5f2;
+    --bg-soft:#efeee9;
+    --surface:#ffffff;
+    --surface-2:#f4f3ef;
+    --border:#e3e1da;
+    --text:#16171c;
+    --text-dim:#666a74;
+    --text-faint:#9b9ea6;
+    --accent:#6650f0;
+    --accent-2:#0fa483;
+    --accent-soft:rgba(102,80,240,.10);
+    --danger:#d8434a;
+    --shadow: 0 20px 50px rgba(20,20,30,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    transition:background .25s ease, color .25s ease;
+    overflow-x:hidden;
+  }
+  ::selection{background:var(--accent-soft); color:var(--text);}
+  a{color:inherit;}
+  button{font-family:inherit;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  .display{font-family:'Unbounded',sans-serif;}
+
+  /* ---------- layout shell ---------- */
+  .app{min-height:100%; display:flex; flex-direction:column;}
+  header.topbar{
+    position:sticky; top:0; z-index:40;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 28px;
+    background:color-mix(in srgb, var(--bg) 80%, transparent);
+    backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--border);
+  }
+  .brand{display:flex; align-items:center; gap:10px;}
+  .brand .mark{
+    width:34px;height:34px;border-radius:10px;
+    background:linear-gradient(135deg, var(--accent), var(--accent-2));
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Unbounded',sans-serif; font-weight:800; color:#0b0c0f; font-size:15px;
+    flex:none;
+  }
+  .brand .name{font-family:'Unbounded',sans-serif; font-weight:700; font-size:17px; letter-spacing:.2px;}
+  .brand .tag{font-size:11px; color:var(--text-dim); margin-top:1px;}
+
+  nav.menu{display:flex; gap:4px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:4px;}
+  nav.menu button{
+    border:none; background:transparent; color:var(--text-dim);
+    padding:8px 16px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer;
+    transition:.18s;
+  }
+  nav.menu button.active{background:var(--accent); color:#fff;}
+  nav.menu button:not(.active):hover{color:var(--text); background:var(--surface-2);}
+
+  .topbar-actions{display:flex; align-items:center; gap:8px;}
+  .icon-btn{
+    width:38px;height:38px; border-radius:10px; border:1px solid var(--border); background:var(--surface);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-dim);
+    transition:.18s;
+  }
+  .icon-btn:hover{color:var(--text); border-color:var(--accent); background:var(--surface-2);}
+  .icon-btn svg{width:17px;height:17px;}
+
+  main{flex:1; width:100%; max-width:1180px; margin:0 auto; padding:34px 28px 80px;}
+
+  .hero{margin-bottom:30px;}
+  .hero h1{font-family:'Unbounded',sans-serif; font-size:30px; font-weight:700; letter-spacing:-.2px; line-height:1.25;}
+  .hero p{color:var(--text-dim); font-size:14.5px; margin-top:8px; max-width:560px; line-height:1.6;}
+
+  /* ---------- section visibility ---------- */
+  .view{display:none;}
+  .view.active{display:block; animation:fadeUp .35s ease;}
+  @keyframes fadeUp{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  /* ---------- analysis layout ---------- */
+  .grid{display:grid; grid-template-columns:1.5fr 1fr; gap:22px;}
+  @media (max-width:880px){.grid{grid-template-columns:1fr;}}
+
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:16px;
+    padding:20px; box-shadow:var(--shadow);
+  }
+  .card h3{font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-dim); font-weight:600; margin-bottom:14px;}
+
+  .editor-toolbar{display:flex; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:wrap;}
+  .pill-btn{
+    border:1px solid var(--border); background:var(--surface-2); color:var(--text-dim);
+    font-size:12.5px; font-weight:600; padding:7px 12px; border-radius:9px; cursor:pointer; transition:.18s;
+    display:flex; align-items:center; gap:6px;
+  }
+  .pill-btn:hover{color:var(--text); border-color:var(--accent);}
+  .pill-btn.danger:hover{color:var(--danger); border-color:var(--danger);}
+
+  .search-in-text{margin-left:auto; display:flex; align-items:center; gap:6px; background:var(--surface-2); border:1px solid var(--border); border-radius:9px; padding:4px 6px 4px 10px;}
+  .search-in-text input{background:transparent; border:none; outline:none; color:var(--text); font-size:13px; width:120px;}
+  .search-in-text .count{font-size:11.5px; color:var(--text-faint); white-space:nowrap; padding:0 2px;}
+  .search-in-text button{border:none; background:transparent; color:var(--text-dim); cursor:pointer; padding:4px 6px; border-radius:6px; font-size:13px;}
+  .search-in-text button:hover{color:var(--accent);}
+
+  textarea#editor{
+    width:100%; min-height:340px; resize:vertical;
+    background:var(--bg-soft); border:1px solid var(--border); border-radius:12px;
+    color:var(--text); font-size:15.5px; line-height:1.75; padding:18px;
+    font-family:'Inter',sans-serif; outline:none; transition:border-color .18s;
+  }
+  textarea#editor:focus{border-color:var(--accent);}
+  .editor-footer{display:flex; justify-content:space-between; margin-top:10px; font-size:12px; color:var(--text-faint);}
+
+  /* stats panel */
+  .stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .stat{
+    background:var(--surface-2); border:1px solid var(--border); border-radius:12px; padding:13px 14px;
+  }
+  .stat .num{font-family:'JetBrains Mono',monospace; font-size:21px; font-weight:700; color:var(--accent);}
+  .stat .label{font-size:11.5px; color:var(--text-dim); margin-top:3px;}
+
+  .lang-guess{
+    margin-top:14px; display:flex; align-items:center; gap:10px;
+    background:var(--accent-soft); border:1px solid var(--border); border-radius:12px; padding:12px 14px;
+  }
+  .lang-guess .dot{width:8px;height:8px;border-radius:50%; background:var(--accent-2); flex:none;}
+  .lang-guess .t{font-size:13px;}
+  .lang-guess .t b{font-weight:700;}
+
+  .top-words{margin-top:16px;}
+  .top-words h3{margin-bottom:10px;}
+  .word-row{display:flex; align-items:center; gap:10px; font-size:13px; margin-bottom:8px;}
+  .word-row .w{width:90px; flex:none; color:var(--text); font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .word-row .bar-track{flex:1; height:6px; border-radius:4px; background:var(--surface-2); overflow:hidden;}
+  .word-row .bar-fill{height:100%; background:linear-gradient(90deg, var(--accent), var(--accent-2)); border-radius:4px;}
+  .word-row .c{width:22px; text-align:right; color:var(--text-faint); font-family:'JetBrains Mono',monospace; font-size:11.5px;}
+
+  /* ---------- voice view ---------- */
+  .voice-wrap{display:grid; grid-template-columns:1fr 320px; gap:22px;}
+  @media (max-width:880px){.voice-wrap{grid-template-columns:1fr;}}
+
+  .lang-chips{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px;}
+  .lang-chip{
+    border:1px solid var(--border); background:var(--surface-2); color:var(--text-dim);
+    padding:8px 14px; border-radius:999px; font-size:13px; font-weight:600; cursor:pointer; transition:.18s;
+  }
+  .lang-chip.active{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .lang-chip:not(.active):hover{color:var(--text); border-color:var(--accent);}
+
+  .voice-stage{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background:var(--bg-soft); border:1px solid var(--border); border-radius:16px; padding:40px 20px; min-height:220px;
+  }
+  .wave{display:flex; align-items:flex-end; gap:5px; height:64px; margin-bottom:22px;}
+  .wave span{
+    width:6px; border-radius:4px; background:var(--text-faint); height:14px;
+    transition:height .12s ease, background .25s ease;
+  }
+  .wave.speaking span{background:var(--accent);}
+  .play-row{display:flex; align-items:center; gap:14px;}
+  .play-main{
+    width:64px;height:64px;border-radius:50%; border:none; cursor:pointer;
+    background:linear-gradient(135deg, var(--accent), var(--accent-2)); color:#0b0c0f;
+    display:flex; align-items:center; justify-content:center; box-shadow:0 10px 30px var(--accent-soft);
+    transition:transform .15s;
+  }
+  .play-main:hover{transform:scale(1.05);}
+  .play-main svg{width:24px;height:24px;}
+  .sub-btn{
+    width:46px;height:46px;border-radius:50%; border:1px solid var(--border); background:var(--surface);
+    color:var(--text-dim); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:.18s;
+  }
+  .sub-btn:hover{color:var(--text); border-color:var(--accent);}
+  .voice-status{margin-top:16px; font-size:12.5px; color:var(--text-faint); text-align:center;}
+
+  .slider-row{margin-top:18px;}
+  .slider-row label{display:flex; justify-content:space-between; font-size:12.5px; color:var(--text-dim); margin-bottom:6px;}
+  .slider-row label .val{font-family:'JetBrains Mono',monospace; color:var(--accent);}
+  input[type="range"]{
+    -webkit-appearance:none; width:100%; height:4px; border-radius:4px; background:var(--surface-2); outline:none;
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:var(--accent); cursor:pointer; border:3px solid var(--bg);
+  }
+
+  .mode-switch{display:flex; gap:8px; margin-bottom:20px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:4px; width:fit-content;}
+  .mode-btn{border:none; background:transparent; color:var(--text-dim); padding:9px 18px; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:.18s;}
+  .mode-btn.active{background:var(--accent); color:#fff;}
+  .mode-btn:not(.active):hover{color:var(--text); background:var(--surface-2);}
+
+  .hint{font-size:12.5px; color:var(--text-dim); line-height:1.5; margin-bottom:16px;}
+  .text-input{
+    width:100%; background:var(--surface-2); border:1px solid var(--border); color:var(--text);
+    padding:10px 12px; border-radius:9px; font-size:13.5px; outline:none; font-family:'JetBrains Mono',monospace;
+  }
+  .text-input:focus{border-color:var(--accent);}
+
+  .pill-btn.primary{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .pill-btn.primary:hover{filter:brightness(1.08); color:#fff;}
+  .pill-btn.primary:disabled{opacity:.5; cursor:not-allowed;}
+
+  .gen-status{font-size:12.5px; color:var(--text-dim); margin-top:12px; min-height:18px; display:flex; align-items:center; gap:8px;}
+  .gen-status.err{color:var(--danger);}
+  .gen-status.ok{color:var(--accent-2);}
+  .spinner{width:14px; height:14px; border-radius:50%; border:2px solid var(--border); border-top-color:var(--accent); animation:spin .7s linear infinite; flex:none;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .audio-result{margin-top:16px; padding-top:16px; border-top:1px solid var(--border);}
+  .audio-result audio{border-radius:9px;}
+
+  .backend-note{
+    margin-top:18px; font-size:12px; line-height:1.6; color:var(--text-dim);
+    background:var(--surface-2); border:1px solid var(--border); border-radius:11px; padding:12px 14px;
+  }
+  .backend-note code{background:var(--bg); border:1px solid var(--border); padding:1px 5px; border-radius:5px; font-family:'JetBrains Mono',monospace; font-size:11px;}
+
+  select{
+    width:100%; background:var(--surface-2); border:1px solid var(--border); color:var(--text);
+    padding:10px 12px; border-radius:9px; font-size:13.5px; outline:none; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .field{margin-bottom:16px;}
+  .field label{display:block; font-size:12px; color:var(--text-dim); margin-bottom:7px; font-weight:600;}
+
+  /* ---------- settings drawer ---------- */
+  .overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,.4); backdrop-filter:blur(2px);
+    opacity:0; pointer-events:none; transition:opacity .25s; z-index:60;
+  }
+  .overlay.show{opacity:1; pointer-events:auto;}
+  .drawer{
+    position:fixed; top:0; right:0; height:100%; width:380px; max-width:88vw;
+    background:var(--surface); border-left:1px solid var(--border); box-shadow:var(--shadow);
+    transform:translateX(100%); transition:transform .3s ease; z-index:61; padding:24px; overflow-y:auto;
+  }
+  .drawer.show{transform:translateX(0);}
+  .drawer-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;}
+  .drawer-head h2{font-family:'Unbounded',sans-serif; font-size:18px;}
+  .setting-row{
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+    padding:14px 0; border-bottom:1px solid var(--border);
+  }
+  .setting-row:last-child{border-bottom:none;}
+  .setting-row .t{font-size:13.5px; font-weight:600;}
+  .setting-row .d{font-size:12px; color:var(--text-dim); margin-top:3px; line-height:1.4;}
+  .switch{position:relative; width:44px; height:25px; flex:none;}
+  .switch input{opacity:0; width:0; height:0;}
+  .switch .track{
+    position:absolute; inset:0; background:var(--surface-2); border:1px solid var(--border); border-radius:999px; cursor:pointer; transition:.2s;
+  }
+  .switch .track:before{
+    content:""; position:absolute; width:17px; height:17px; left:3px; top:3px; background:var(--text-faint); border-radius:50%; transition:.2s;
+  }
+  .switch input:checked + .track{background:var(--accent); border-color:var(--accent);}
+  .switch input:checked + .track:before{transform:translateX(19px); background:#fff;}
+
+  .reset-btn{
+    width:100%; margin-top:20px; padding:11px; border-radius:10px; border:1px solid var(--border);
+    background:transparent; color:var(--text-dim); font-size:13px; font-weight:600; cursor:pointer; transition:.18s;
+  }
+  .reset-btn:hover{color:var(--danger); border-color:var(--danger);}
+
+  /* ---------- command palette ---------- */
+  .palette{
+    position:fixed; top:14%; left:50%; transform:translateX(-50%) translateY(-10px);
+    width:520px; max-width:90vw; background:var(--surface); border:1px solid var(--border);
+    border-radius:16px; box-shadow:var(--shadow); z-index:71; opacity:0; pointer-events:none; transition:.2s;
+  }
+  .palette.show{opacity:1; pointer-events:auto; transform:translateX(-50%) translateY(0);}
+  .palette input{
+    width:100%; padding:18px 20px; background:transparent; border:none; outline:none; color:var(--text);
+    font-size:15px; border-bottom:1px solid var(--border);
+  }
+  .palette-list{max-height:340px; overflow-y:auto; padding:8px;}
+  .palette-item{
+    display:flex; align-items:center; gap:12px; padding:11px 12px; border-radius:9px; cursor:pointer; font-size:13.5px;
+  }
+  .palette-item .k{color:var(--text-dim); width:20px; flex:none; text-align:center;}
+  .palette-item.sel{background:var(--accent-soft);}
+  .palette-empty{padding:24px; text-align:center; color:var(--text-faint); font-size:13px;}
+
+  footer{text-align:center; color:var(--text-faint); font-size:12px; padding:20px; border-top:1px solid var(--border);}
+
+  @media (max-width:680px){
+    header.topbar{padding:14px 16px;}
+    nav.menu{position:fixed; bottom:14px; left:50%; transform:translateX(-50%); z-index:39; box-shadow:var(--shadow);}
+    main{padding:22px 16px 100px;}
+    .brand .tag{display:none;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="mark">M</div>
+      <div>
+        <div class="name">MatnAI</div>
+        <div class="tag">tezkor matn tahlili &amp; ovoz</div>
+      </div>
+    </div>
+
+    <nav class="menu" id="menu">
+      <button data-view="analiz" class="active">Tahlil</button>
+      <button data-view="ovoz">Ovoz</button>
+    </nav>
+
+    <div class="topbar-actions">
+      <button class="icon-btn" id="searchOpen" title="Qidiruv (Ctrl+K)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      </button>
+      <button class="icon-btn" id="settingsOpen" title="Sozlamalar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <div class="hero">
+      <h1>Matningizni yozing — qolganini MatnAI bajaradi.</h1>
+      <p>Belgilar, so'zlar, gaplar sonini sekundda hisoblab beradi va istalgan tilda ovozli o'qib eshittiradi. Hammasi brauzeringizda, hech qanday serverga yuborilmaydi.</p>
+    </div>
+
+    <!-- ===================== ANALIZ VIEW ===================== -->
+    <section class="view active" id="view-analiz">
+      <div class="grid">
+        <div class="card">
+          <div class="editor-toolbar">
+            <button class="pill-btn" id="btnSample">✨ Namuna matn</button>
+            <button class="pill-btn" id="btnPaste">📋 Joylash</button>
+            <button class="pill-btn danger" id="btnClear">🗑 Tozalash</button>
+            <div class="search-in-text">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+              <input id="inTextSearch" placeholder="matn ichida qidirish…">
+              <span class="count" id="inTextCount">0/0</span>
+              <button id="inTextPrev" title="Oldingi">‹</button>
+              <button id="inTextNext" title="Keyingi">›</button>
+            </div>
+          </div>
+          <textarea id="editor" placeholder="Matningizni shu yerga yozing yoki joylashtiring…"></textarea>
+          <div class="editor-footer">
+            <span id="cursorInfo">0-pozitsiya</span>
+            <span>O'qish vaqti taxminan <b id="readTimeInline">0 s</b></span>
+          </div>
+        </div>
+
+        <div>
+          <div class="card">
+            <h3>Tezkor statistika</h3>
+            <div class="stat-grid">
+              <div class="stat"><div class="num mono" id="statChars">0</div><div class="label">belgilar</div></div>
+              <div class="stat"><div class="num mono" id="statWords">0</div><div class="label">so'zlar</div></div>
+              <div class="stat"><div class="num mono" id="statSent">0</div><div class="label">gaplar</div></div>
+              <div class="stat"><div class="num mono" id="statPara">0</div><div class="label">paragraflar</div></div>
+              <div class="stat"><div class="num mono" id="statRead">0 s</div><div class="label">o'qish vaqti</div></div>
+              <div class="stat"><div class="num mono" id="statSpeak">0 s</div><div class="label">gapirish vaqti</div></div>
+            </div>
+
+            <div class="lang-guess">
+              <div class="dot"></div>
+              <div class="t">Aniqlangan til: <b id="langGuess">—</b></div>
+            </div>
+
+            <div class="top-words">
+              <h3>Eng ko'p ishlatilgan so'zlar</h3>
+              <div id="topWordsBox"><div style="color:var(--text-faint); font-size:13px;">Tahlil uchun matn kiriting</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== OVOZ VIEW ===================== -->
+    <section class="view" id="view-ovoz">
+
+      <div class="mode-switch" id="modeSwitch">
+        <button class="mode-btn active" data-mode="neural">🎙 Neural ovoz (MP3)</button>
+        <button class="mode-btn" data-mode="browser">⚡ Brauzer ovozi (tezkor)</button>
+      </div>
+
+      <!-- ---- NEURAL (backend) MODE ---- -->
+      <div class="voice-wrap" id="modeNeural">
+        <div class="card">
+          <h3>Neural ovoz yaratish</h3>
+          <p class="hint">edge-tts orqali ishlaydi, tabiiy ovoz beradi va natijani MP3 sifatida yuklab olishingiz mumkin.</p>
+
+          <div class="field">
+            <label>Backend manzili</label>
+            <input type="text" id="backendUrl" placeholder="https://sizning-server.up.railway.app" class="text-input">
+          </div>
+
+          <div class="lang-chips" id="langChipsNeural">
+            <button class="lang-chip active" data-lang="uz-UZ">O'zbek</button>
+            <button class="lang-chip" data-lang="en-US">Ingliz</button>
+            <button class="lang-chip" data-lang="ru-RU">Rus</button>
+            <button class="lang-chip" data-lang="tr-TR">Turk</button>
+            <button class="lang-chip" data-lang="ar-SA">Arab</button>
+            <button class="lang-chip" data-lang="de-DE">Nemis</button>
+          </div>
+
+          <div class="field">
+            <label>Ovoz</label>
+            <select id="neuralVoiceSelect"></select>
+          </div>
+
+          <button class="pill-btn primary" id="btnGenerate" style="width:100%; justify-content:center; padding:12px;">
+            ✨ MP3 yaratish
+          </button>
+
+          <div class="gen-status" id="genStatus"></div>
+
+          <div class="audio-result" id="audioResult" style="display:none;">
+            <audio id="audioPlayer" controls style="width:100%;"></audio>
+            <a id="downloadLink" class="pill-btn primary" download="matnai_audio.mp3" style="margin-top:10px; width:100%; justify-content:center;">
+              ⬇ MP3 yuklab olish
+            </a>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Ovoz sozlamalari</h3>
+          <div class="slider-row">
+            <label>Tezlik <span class="val" id="nRateVal">+0%</span></label>
+            <input type="range" id="nRateSlider" min="-50" max="50" step="5" value="0">
+          </div>
+          <div class="slider-row">
+            <label>Ohang <span class="val" id="nPitchVal">+0Hz</span></label>
+            <input type="range" id="nPitchSlider" min="-30" max="30" step="5" value="0">
+          </div>
+          <div class="backend-note">
+            <b>Backend hali ulanmagan bo'lsa:</b> yuklab olingan <code>server.py</code> va <code>requirements.txt</code> fayllarini Railway'ga (bot.py joylashtirgan usulingiz bilan) joylang, so'ng shu yerdagi "Backend manzili" maydoniga URL manzilini kiriting.
+          </div>
+        </div>
+      </div>
+
+      <!-- ---- BROWSER MODE ---- -->
+      <div class="voice-wrap" id="modeBrowser" style="display:none;">
+        <div class="card">
+          <h3>Tilni tanlang</h3>
+          <div class="lang-chips" id="langChips">
+            <button class="lang-chip active" data-lang="auto">Avtomatik</button>
+            <button class="lang-chip" data-lang="uz-UZ">O'zbek</button>
+            <button class="lang-chip" data-lang="en-US">Ingliz</button>
+            <button class="lang-chip" data-lang="ru-RU">Rus</button>
+            <button class="lang-chip" data-lang="tr-TR">Turk</button>
+            <button class="lang-chip" data-lang="ar-SA">Arab</button>
+            <button class="lang-chip" data-lang="de-DE">Nemis</button>
+          </div>
+
+          <div class="field">
+            <label>Ovoz (brauzeringizdagi mavjud ovozlar)</label>
+            <select id="voiceSelect"></select>
+          </div>
+
+          <p class="hint">Bu rejim tezkor, lekin ovoz sifati operatsion tizimingizga bog'liq va MP3 yuklab bo'lmaydi. Yaxshi natija uchun Neural rejimdan foydalaning.</p>
+
+          <div class="voice-stage">
+            <div class="wave" id="wave">
+              <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <div class="play-row">
+              <button class="sub-btn" id="btnRestart" title="Boshidan">⏮</button>
+              <button class="play-main" id="btnPlay" title="O'qish">
+                <svg id="iconPlay" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              </button>
+              <button class="sub-btn" id="btnStop" title="To'xtatish">⏹</button>
+            </div>
+            <div class="voice-status" id="voiceStatus">Matn kiritib, "o'qish" tugmasini bosing</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Ovoz sozlamalari</h3>
+          <div class="slider-row">
+            <label>Tezlik <span class="val" id="rateVal">1.0×</span></label>
+            <input type="range" id="rateSlider" min="0.5" max="2" step="0.1" value="1">
+          </div>
+          <div class="slider-row">
+            <label>Ohang (pitch) <span class="val" id="pitchVal">1.0</span></label>
+            <input type="range" id="pitchSlider" min="0" max="2" step="0.1" value="1">
+          </div>
+          <div class="slider-row">
+            <label>Tovush balandligi <span class="val" id="volVal">100%</span></label>
+            <input type="range" id="volSlider" min="0" max="1" step="0.05" value="1">
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>MatnAI — barcha tahlillar va ovoz sintezi to'liq brauzeringizda ishlaydi, matn hech qayerga yuborilmaydi.</footer>
+</div>
+
+<!-- ===================== SETTINGS DRAWER ===================== -->
+<div class="overlay" id="overlay"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <h2>Sozlamalar</h2>
+    <button class="icon-btn" id="drawerClose">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+
+  <div class="setting-row">
+    <div>
+      <div class="t">Qorong'u rejim</div>
+      <div class="d">Interfeysni tungi ko'rinishga o'zgartiradi</div>
+    </div>
+    <label class="switch"><input type="checkbox" id="toggleDark" checked><span class="track"></span></label>
+  </div>
+
+  <div class="setting-row">
+    <div>
+      <div class="t">Avtomatik o'qish</div>
+      <div class="d">Ovoz bo'limiga o'tganda matn avtomatik o'qiladi</div>
+    </div>
+    <label class="switch"><input type="checkbox" id="toggleAutoplay"><span class="track"></span></label>
+  </div>
+
+  <div class="setting-row">
+    <div>
+      <div class="t">Tilni avtomatik aniqlash</div>
+      <div class="d">Matn tiliga qarab ovozni o'zi tanlaydi</div>
+    </div>
+    <label class="switch"><input type="checkbox" id="toggleAutoLang" checked><span class="track"></span></label>
+  </div>
+
+  <div class="setting-row">
+    <div>
+      <div class="t">Matn shrift o'lchami</div>
+      <div class="d">Tahrirlash maydonidagi matn kattaligi</div>
+    </div>
+    <select id="fontSizeSelect" style="width:120px;">
+      <option value="14">Kichik</option>
+      <option value="15.5" selected>O'rtacha</option>
+      <option value="18">Katta</option>
+    </select>
+  </div>
+
+  <div class="setting-row">
+    <div>
+      <div class="t">O'qish tezligi (so'z/daqiqa)</div>
+      <div class="d">"O'qish vaqti" hisob-kitobi uchun</div>
+    </div>
+    <select id="wpmSelect" style="width:120px;">
+      <option value="160">160</option>
+      <option value="200" selected>200</option>
+      <option value="250">250</option>
+    </select>
+  </div>
+
+  <button class="reset-btn" id="resetSettings">Sozlamalarni asliga qaytarish</button>
+</div>
+
+<!-- ===================== COMMAND PALETTE ===================== -->
+<div class="overlay" id="paletteOverlay"></div>
+<div class="palette" id="palette">
+  <input id="paletteInput" placeholder="Buyruq yoki bo'lim qidiring…">
+  <div class="palette-list" id="paletteList"></div>
+</div>
+
+<script>
+(function(){
+  // ---------- THEME ----------
+  const root = document.documentElement;
+  const toggleDark = document.getElementById('toggleDark');
+  function setTheme(dark){
+    root.setAttribute('data-theme', dark ? 'dark' : 'light');
+    toggleDark.checked = dark;
+  }
+  toggleDark.addEventListener('change', e => setTheme(e.target.checked));
+
+  // ---------- MENU / VIEWS ----------
+  const menuBtns = document.querySelectorAll('#menu button');
+  const views = { analiz: document.getElementById('view-analiz'), ovoz: document.getElementById('view-ovoz') };
+  function showView(name){
+    menuBtns.forEach(b => b.classList.toggle('active', b.dataset.view === name));
+    Object.entries(views).forEach(([k, el]) => el.classList.toggle('active', k === name));
+    if(name === 'ovoz' && settings.autoplay && editor.value.trim()){ speak(); }
+  }
+  menuBtns.forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
+
+  // ---------- SETTINGS DRAWER ----------
+  const drawer = document.getElementById('drawer');
+  const overlay = document.getElementById('overlay');
+  function openDrawer(){ drawer.classList.add('show'); overlay.classList.add('show'); }
+  function closeDrawer(){ drawer.classList.remove('show'); overlay.classList.remove('show'); }
+  document.getElementById('settingsOpen').addEventListener('click', openDrawer);
+  document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+  overlay.addEventListener('click', closeDrawer);
+
+  const settings = { autoplay:false, autoLang:true, fontSize:15.5, wpm:200 };
+  document.getElementById('toggleAutoplay').addEventListener('change', e => settings.autoplay = e.target.checked);
+  document.getElementById('toggleAutoLang').addEventListener('change', e => settings.autoLang = e.target.checked);
+  document.getElementById('fontSizeSelect').addEventListener('change', e => {
+    settings.fontSize = parseFloat(e.target.value);
+    editor.style.fontSize = settings.fontSize + 'px';
+  });
+  document.getElementById('wpmSelect').addEventListener('change', e => {
+    settings.wpm = parseInt(e.target.value); analyze();
+  });
+  document.getElementById('resetSettings').addEventListener('click', () => {
+    setTheme(true);
+    settings.autoplay = false; settings.autoLang = true; settings.fontSize = 15.5; settings.wpm = 200;
+    document.getElementById('toggleAutoplay').checked = false;
+    document.getElementById('toggleAutoLang').checked = true;
+    document.getElementById('fontSizeSelect').value = '15.5';
+    document.getElementById('wpmSelect').value = '200';
+    editor.style.fontSize = '15.5px';
+    rateSlider.value = 1; pitchSlider.value = 1; volSlider.value = 1;
+    rateVal.textContent = '1.0×'; pitchVal.textContent = '1.0'; volVal.textContent = '100%';
+    analyze();
+  });
+
+  // ---------- EDITOR / ANALYSIS ----------
+  const editor = document.getElementById('editor');
+  const sample = "Matn — bu fikrning eng qadimiy va eng kuchli tashuvchisi. U orqali g'oyalar avloddan-avlodga o'tadi, ilm tarqaladi va his-tuyg'ular ifodalanadi. Yaxshi yozilgan matn o'quvchini o'ylashga, his qilishga va harakatga undaydi. MatnAI sizga aynan shu matnlarni tezda tushunish va kerak bo'lsa, ovoz orqali eshitish imkonini beradi.";
+
+  document.getElementById('btnSample').addEventListener('click', () => { editor.value = sample; analyze(); });
+  document.getElementById('btnClear').addEventListener('click', () => { editor.value = ''; analyze(); });
+  document.getElementById('btnPaste').addEventListener('click', async () => {
+    try{ const t = await navigator.clipboard.readText(); editor.value += t; analyze(); }
+    catch(e){ editor.focus(); }
+  });
+
+  const STOP = {
+    uz: ["bo'lib","bo'ladi","uchun","bilan","lekin","ham","edi","yoki","shuningdek","kerak","emas","bu","va","u","bir","biz","men","siz"],
+    en: ["the","and","is","are","was","were","for","with","that","this","have","has","but","you","not","with","from","they"],
+    ru: ["и","в","не","на","что","он","она","как","но","для","от","это","я","вы","мы","быть"]
+  };
+
+  function detectLang(text){
+    const low = text.toLowerCase();
+    let scores = {uz:0, en:0, ru:0};
+    Object.keys(STOP).forEach(k => {
+      STOP[k].forEach(w => { if(low.includes(' '+w+' ') || low.startsWith(w+' ')) scores[k]++; });
+    });
+    if(/[а-яё]/i.test(text)) scores.ru += 5;
+    if(/[o'g'ʻʼ]|[ʻʼ]/i.test(text)) scores.uz += 2;
+    const best = Object.entries(scores).sort((a,b)=>b[1]-a[1])[0];
+    if(best[1] === 0) return {code:'auto', label:'Aniqlanmadi'};
+    const map = {uz:"O'zbekcha", en:"Inglizcha", ru:"Ruscha"};
+    return {code:best[0], label:map[best[0]]};
+  }
+
+  function analyze(){
+    const text = editor.value;
+    const trimmed = text.trim();
+    const chars = text.length;
+    const words = trimmed ? (trimmed.match(/[\p{L}\p{N}'’ʻ]+/gu) || []) : [];
+    const sentences = trimmed ? (trimmed.match(/[^.!?…]+[.!?…]+/g) || (trimmed ? [trimmed] : [])) : [];
+    const paragraphs = trimmed ? trimmed.split(/\n{1,}/).filter(p => p.trim().length) : [];
+
+    document.getElementById('statChars').textContent = chars;
+    document.getElementById('statWords').textContent = words.length;
+    document.getElementById('statSent').textContent = sentences.length;
+    document.getElementById('statPara').textContent = paragraphs.length || (trimmed ? 1 : 0);
+
+    const readSec = Math.round((words.length / settings.wpm) * 60);
+    const speakSec = Math.round(words.length / 2.5);
+    document.getElementById('statRead').textContent = formatTime(readSec);
+    document.getElementById('statSpeak').textContent = formatTime(speakSec);
+    document.getElementById('readTimeInline').textContent = formatTime(readSec);
+
+    const lang = detectLang(trimmed);
+    document.getElementById('langGuess').textContent = trimmed ? lang.label : '—';
+
+    renderTopWords(words);
+    updateInTextSearch();
+  }
+
+  function formatTime(sec){
+    if(sec < 60) return sec + ' s';
+    const m = Math.floor(sec/60), s = sec % 60;
+    return m + ' d ' + s + ' s';
+  }
+
+  function renderTopWords(words){
+    const box = document.getElementById('topWordsBox');
+    if(!words.length){ box.innerHTML = '<div style="color:var(--text-faint); font-size:13px;">Tahlil uchun matn kiriting</div>'; return; }
+    const freq = {};
+    words.forEach(w => {
+      const lw = w.toLowerCase();
+      if(lw.length < 3) return;
+      freq[lw] = (freq[lw]||0)+1;
+    });
+    const top = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    if(!top.length){ box.innerHTML = '<div style="color:var(--text-faint); font-size:13px;">Yetarli ma\'lumot yo\'q</div>'; return; }
+    const max = top[0][1];
+    box.innerHTML = top.map(([w,c]) => `
+      <div class="word-row">
+        <div class="w">${w}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${(c/max*100).toFixed(0)}%"></div></div>
+        <div class="c">${c}</div>
+      </div>`).join('');
+  }
+
+  editor.addEventListener('input', analyze);
+  editor.addEventListener('click', updateCursor);
+  editor.addEventListener('keyup', updateCursor);
+  function updateCursor(){ document.getElementById('cursorInfo').textContent = editor.selectionStart + '-pozitsiya'; }
+
+  // ---------- IN-TEXT SEARCH ----------
+  const inTextSearch = document.getElementById('inTextSearch');
+  const inTextCount = document.getElementById('inTextCount');
+  let matches = [], matchIndex = -1;
+
+  function updateInTextSearch(){
+    const q = inTextSearch.value;
+    matches = [];
+    if(q){
+      const text = editor.value.toLowerCase();
+      const ql = q.toLowerCase();
+      let pos = 0;
+      while(true){
+        const idx = text.indexOf(ql, pos);
+        if(idx === -1) break;
+        matches.push(idx);
+        pos = idx + ql.length;
+      }
+    }
+    matchIndex = matches.length ? 0 : -1;
+    inTextCount.textContent = (matches.length ? matchIndex+1 : 0) + '/' + matches.length;
+  }
+  inTextSearch.addEventListener('input', updateInTextSearch);
+  function gotoMatch(dir){
+    if(!matches.length) return;
+    matchIndex = (matchIndex + dir + matches.length) % matches.length;
+    const start = matches[matchIndex], end = start + inTextSearch.value.length;
+    editor.focus();
+    editor.setSelectionRange(start, end);
+    const lineHeight = 24;
+    const linesBefore = editor.value.slice(0, start).split('\n').length;
+    editor.scrollTop = Math.max(0, (linesBefore - 4) * lineHeight);
+    inTextCount.textContent = (matchIndex+1) + '/' + matches.length;
+  }
+  document.getElementById('inTextNext').addEventListener('click', () => gotoMatch(1));
+  document.getElementById('inTextPrev').addEventListener('click', () => gotoMatch(-1));
+  inTextSearch.addEventListener('keydown', e => { if(e.key === 'Enter') gotoMatch(e.shiftKey ? -1 : 1); });
+
+  // ---------- MODE SWITCH (Neural vs Browser) ----------
+  const modeNeural = document.getElementById('modeNeural');
+  const modeBrowser = document.getElementById('modeBrowser');
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const isNeural = btn.dataset.mode === 'neural';
+      modeNeural.style.display = isNeural ? '' : 'none';
+      modeBrowser.style.display = isNeural ? 'none' : '';
+      if(!isNeural){ speechSynthesis.cancel(); }
+    });
+  });
+
+  // ---------- NEURAL BACKEND TTS ----------
+  const backendUrlInput = document.getElementById('backendUrl');
+  const neuralVoiceSelect = document.getElementById('neuralVoiceSelect');
+  const genStatus = document.getElementById('genStatus');
+  const audioResult = document.getElementById('audioResult');
+  const audioPlayer = document.getElementById('audioPlayer');
+  const downloadLink = document.getElementById('downloadLink');
+  const btnGenerate = document.getElementById('btnGenerate');
+
+  const FALLBACK_VOICES = {
+    "uz-UZ": [{name:"uz-UZ-MadinaNeural", gender:"Ayol"}, {name:"uz-UZ-SardorNeural", gender:"Erkak"}],
+    "en-US": [{name:"en-US-AvaNeural", gender:"Ayol"}, {name:"en-US-AndrewNeural", gender:"Erkak"}, {name:"en-US-EmmaNeural", gender:"Ayol"}],
+    "ru-RU": [{name:"ru-RU-SvetlanaNeural", gender:"Ayol"}, {name:"ru-RU-DmitryNeural", gender:"Erkak"}],
+    "tr-TR": [{name:"tr-TR-EmelNeural", gender:"Ayol"}, {name:"tr-TR-AhmetNeural", gender:"Erkak"}],
+    "ar-SA": [{name:"ar-SA-ZariyahNeural", gender:"Ayol"}, {name:"ar-SA-HamedNeural", gender:"Erkak"}],
+    "de-DE": [{name:"de-DE-KatjaNeural", gender:"Ayol"}, {name:"de-DE-ConradNeural", gender:"Erkak"}],
+  };
+  let neuralLang = 'uz-UZ';
+
+  function populateNeuralVoices(){
+    const list = FALLBACK_VOICES[neuralLang] || [];
+    neuralVoiceSelect.innerHTML = list.map(v => `<option value="${v.name}">${v.name} — ${v.gender}</option>`).join('');
+  }
+  populateNeuralVoices();
+
+  document.querySelectorAll('#langChipsNeural .lang-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('#langChipsNeural .lang-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      neuralLang = chip.dataset.lang;
+      populateNeuralVoices();
+    });
+  });
+
+  const nRateSlider = document.getElementById('nRateSlider');
+  const nPitchSlider = document.getElementById('nPitchSlider');
+  const nRateVal = document.getElementById('nRateVal');
+  const nPitchVal = document.getElementById('nPitchVal');
+  nRateSlider.addEventListener('input', () => nRateVal.textContent = (nRateSlider.value >= 0 ? '+' : '') + nRateSlider.value + '%');
+  nPitchSlider.addEventListener('input', () => nPitchVal.textContent = (nPitchSlider.value >= 0 ? '+' : '') + nPitchSlider.value + 'Hz');
+
+  function setGenStatus(msg, kind){
+    genStatus.className = 'gen-status' + (kind ? ' ' + kind : '');
+    genStatus.innerHTML = kind === 'loading' ? `<span class="spinner"></span>${msg}` : msg;
+  }
+
+  btnGenerate.addEventListener('click', async () => {
+    const text = editor.value.trim();
+    if(!text){ setGenStatus("Avval Tahlil bo'limida matn kiriting", 'err'); return; }
+    const url = backendUrlInput.value.trim().replace(/\/$/, '');
+    if(!url){ setGenStatus("Avval backend manzilini kiriting", 'err'); return; }
+
+    btnGenerate.disabled = true;
+    audioResult.style.display = 'none';
+    setGenStatus('Neural ovoz yaratilmoqda…', 'loading');
+
+    const rate = (nRateSlider.value >= 0 ? '+' : '') + nRateSlider.value + '%';
+    const pitch = (nPitchSlider.value >= 0 ? '+' : '') + nPitchSlider.value + 'Hz';
+
+    try{
+      const res = await fetch(url + '/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, voice: neuralVoiceSelect.value, rate, pitch })
+      });
+      if(!res.ok){
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || `Server xatosi (${res.status})`);
+      }
+      const blob = await res.blob();
+      const objUrl = URL.createObjectURL(blob);
+      audioPlayer.src = objUrl;
+      downloadLink.href = objUrl;
+      const stamp = new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
+      downloadLink.download = `matnai_${stamp}.mp3`;
+      audioResult.style.display = '';
+      setGenStatus('Tayyor! Pastda tinglashingiz yoki yuklab olishingiz mumkin.', 'ok');
+      audioPlayer.play().catch(() => {});
+    } catch(e){
+      setGenStatus('Xato: ' + e.message + ' — backend manzili to\'g\'riligini va ishlab turganini tekshiring.', 'err');
+    } finally {
+      btnGenerate.disabled = false;
+    }
+  });
+
+  // ---------- VOICE / TTS (browser fallback) ----------
+  let voices = [];
+  let selectedLang = 'auto';
+  const wave = document.getElementById('wave');
+  const waveBars = wave.querySelectorAll('span');
+  const voiceSelect = document.getElementById('voiceSelect');
+  const voiceStatus = document.getElementById('voiceStatus');
+  let utterance = null;
+
+  function loadVoices(){
+    voices = speechSynthesis.getVoices();
+    populateVoiceSelect();
+  }
+  function populateVoiceSelect(){
+    let list = voices;
+    if(selectedLang !== 'auto'){
+      const prefix = selectedLang.split('-')[0];
+      const filtered = voices.filter(v => v.lang.toLowerCase().startsWith(prefix));
+      list = filtered.length ? filtered : voices;
+    }
+    voiceSelect.innerHTML = list.map((v,i) => `<option value="${voices.indexOf(v)}">${v.name} (${v.lang})</option>`).join('')
+      || '<option>Ovozlar yuklanmoqda…</option>';
+  }
+  speechSynthesis.onvoiceschanged = loadVoices;
+  loadVoices();
+
+  document.querySelectorAll('.lang-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.lang-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      selectedLang = chip.dataset.lang;
+      populateVoiceSelect();
+    });
+  });
+
+  const rateSlider = document.getElementById('rateSlider');
+  const pitchSlider = document.getElementById('pitchSlider');
+  const volSlider = document.getElementById('volSlider');
+  const rateVal = document.getElementById('rateVal');
+  const pitchVal = document.getElementById('pitchVal');
+  const volVal = document.getElementById('volVal');
+  rateSlider.addEventListener('input', () => rateVal.textContent = parseFloat(rateSlider.value).toFixed(1) + '×');
+  pitchSlider.addEventListener('input', () => pitchVal.textContent = parseFloat(pitchSlider.value).toFixed(1));
+  volSlider.addEventListener('input', () => volVal.textContent = Math.round(volSlider.value*100) + '%');
+
+  function pulseWave(active){
+    wave.classList.toggle('speaking', active);
+    if(active){
+      waveBars.forEach(b => { b.style.height = (10 + Math.random()*54) + 'px'; });
+    } else {
+      waveBars.forEach(b => b.style.height = '14px');
+    }
+  }
+  let waveTimer = null;
+
+  function speak(){
+    if(!editor.value.trim()){ voiceStatus.textContent = "Avval matn kiriting"; return; }
+    speechSynthesis.cancel();
+    utterance = new SpeechSynthesisUtterance(editor.value);
+
+    const idx = voiceSelect.value;
+    if(idx !== '' && voices[idx]) utterance.voice = voices[idx];
+    utterance.lang = selectedLang === 'auto' ? (utterance.voice ? utterance.voice.lang : 'uz-UZ') : selectedLang;
+    utterance.rate = parseFloat(rateSlider.value);
+    utterance.pitch = parseFloat(pitchSlider.value);
+    utterance.volume = parseFloat(volSlider.value);
+
+    utterance.onstart = () => {
+      voiceStatus.textContent = "O'qilmoqda…";
+      iconPlay.outerHTML = '<svg id="iconPlay" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>';
+      pulseWave(true);
+      waveTimer = setInterval(() => pulseWave(true), 110);
+    };
+    utterance.onboundary = () => pulseWave(true);
+    utterance.onend = stopUI;
+    utterance.onerror = stopUI;
+    speechSynthesis.speak(utterance);
+  }
+  function stopUI(){
+    clearInterval(waveTimer);
+    pulseWave(false);
+    voiceStatus.textContent = "Matn kiritib, \"o'qish\" tugmasini bosing";
+    const ip = document.getElementById('iconPlay');
+    if(ip) ip.outerHTML = '<svg id="iconPlay" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+  }
+  let iconPlay = document.getElementById('iconPlay');
+  document.getElementById('btnPlay').addEventListener('click', () => {
+    if(speechSynthesis.speaking && !speechSynthesis.paused){ speechSynthesis.pause(); voiceStatus.textContent = "Pauza"; clearInterval(waveTimer); pulseWave(false); }
+    else if(speechSynthesis.paused){ speechSynthesis.resume(); voiceStatus.textContent = "O'qilmoqda…"; waveTimer = setInterval(() => pulseWave(true), 110); }
+    else { speak(); }
+  });
+  document.getElementById('btnStop').addEventListener('click', () => { speechSynthesis.cancel(); stopUI(); });
+  document.getElementById('btnRestart').addEventListener('click', () => { speak(); });
+
+  // ---------- COMMAND PALETTE ----------
+  const palette = document.getElementById('palette');
+  const paletteOverlay = document.getElementById('paletteOverlay');
+  const paletteInput = document.getElementById('paletteInput');
+  const paletteList = document.getElementById('paletteList');
+
+  const actions = [
+    { k:'⌘', label:"Tahlil bo'limini ochish", run:() => showView('analiz') },
+    { k:'⌘', label:"Ovoz bo'limini ochish", run:() => showView('ovoz') },
+    { k:'⚙', label:"Sozlamalarni ochish", run:openDrawer },
+    { k:'☾', label:"Qorong'u/yorug' rejimni almashtirish", run:() => setTheme(root.getAttribute('data-theme') !== 'dark') },
+    { k:'▶', label:"Matnni o'qish (TTS)", run:() => { showView('ovoz'); speak(); } },
+    { k:'⏹', label:"O'qishni to'xtatish", run:() => { speechSynthesis.cancel(); stopUI(); } },
+    { k:'✨', label:"Namuna matn qo'yish", run:() => { editor.value = sample; analyze(); showView('analiz'); } },
+    { k:'🗑', label:"Matnni tozalash", run:() => { editor.value=''; analyze(); } },
+  ];
+  let paletteSel = 0, filtered = actions;
+
+  function openPalette(){
+    palette.classList.add('show'); paletteOverlay.classList.add('show');
+    paletteInput.value=''; paletteInput.focus(); renderPalette('');
+  }
+  function closePalette(){ palette.classList.remove('show'); paletteOverlay.classList.remove('show'); }
+  function renderPalette(q){
+    filtered = actions.filter(a => a.label.toLowerCase().includes(q.toLowerCase()));
+    paletteSel = 0;
+    paletteList.innerHTML = filtered.length ? filtered.map((a,i) => `
+      <div class="palette-item ${i===0?'sel':''}" data-i="${i}"><span class="k">${a.k}</span><span>${a.label}</span></div>
+    `).join('') : '<div class="palette-empty">Hech narsa topilmadi</div>';
+  }
+  paletteInput.addEventListener('input', e => renderPalette(e.target.value));
+  paletteInput.addEventListener('keydown', e => {
+    if(e.key === 'Escape') closePalette();
+    if(e.key === 'ArrowDown'){ e.preventDefault(); paletteSel = Math.min(paletteSel+1, filtered.length-1); refreshSel(); }
+    if(e.key === 'ArrowUp'){ e.preventDefault(); paletteSel = Math.max(paletteSel-1, 0); refreshSel(); }
+    if(e.key === 'Enter' && filtered[paletteSel]){ filtered[paletteSel].run(); closePalette(); }
+  });
+  function refreshSel(){
+    paletteList.querySelectorAll('.palette-item').forEach((el,i) => el.classList.toggle('sel', i===paletteSel));
+  }
+  paletteList.addEventListener('click', e => {
+    const item = e.target.closest('.palette-item');
+    if(item){ filtered[+item.dataset.i].run(); closePalette(); }
+  });
+  document.getElementById('searchOpen').addEventListener('click', openPalette);
+  paletteOverlay.addEventListener('click', closePalette);
+  document.addEventListener('keydown', e => {
+    if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k'){ e.preventDefault(); openPalette(); }
+    if(e.key === 'Escape'){ closeDrawer(); closePalette(); }
+  });
+
+  analyze();
+})();
+</script>
+</body>
+</html>
