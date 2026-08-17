@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Teshaboyev Salohiddin — Dasturchi</title>
 <meta name="description" content="Teshaboyev Salohiddin — Python, C++, Web va Robototexnika bilan shug'ullanuvchi yosh dasturchi.">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.telegram.org; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';">
 <meta name="referrer" content="no-referrer-when-downgrade">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="robots" content="index, follow">
@@ -132,9 +132,11 @@
   .btn{
     font-family:var(--mono); font-size:13px; padding:11px 20px; border-radius:8px;
     border:1px solid var(--line); transition:all .2s ease; display:inline-flex; align-items:center; gap:8px;
+    cursor:pointer; background:transparent;
   }
   .btn-primary{background:var(--accent); color:var(--accent-text); border-color:var(--accent); font-weight:600;}
   .btn-primary:hover{filter:brightness(1.08); transform:translateY(-1px);}
+  .btn-primary:disabled{opacity:.6; cursor:not-allowed; transform:none;}
   .btn-ghost{color:var(--text); background:transparent;}
   .btn-ghost:hover{border-color:var(--accent); color:var(--accent);}
 
@@ -210,6 +212,27 @@
   .contact-icon{flex:none; width:18px; height:18px; stroke:var(--accent); fill:none;}
   .contact-k{font-family:var(--mono); font-size:10.5px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.05em; margin-bottom:3px;}
   .contact-v{font-size:14px; font-weight:500;}
+
+  /* ---- contact form ---- */
+  .contact-form{
+    border:1px solid var(--line); border-radius:var(--radius); padding:26px;
+    background:var(--bg-elev); margin-top:20px; display:flex; flex-direction:column; gap:16px;
+  }
+  .form-row{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  @media (max-width:600px){.form-row{grid-template-columns:1fr;}}
+  .field{display:flex; flex-direction:column; gap:7px;}
+  .field label{font-family:var(--mono); font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.05em;}
+  .field input, .field textarea{
+    background:var(--bg-elev-2); border:1px solid var(--line); border-radius:8px;
+    padding:11px 13px; color:var(--text); font-family:var(--body); font-size:14px;
+    outline:none; transition:border-color .2s; resize:vertical;
+  }
+  .field input:focus, .field textarea:focus{border-color:var(--accent);}
+  .field textarea{min-height:110px;}
+  .form-footer{display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+  .form-status{font-family:var(--mono); font-size:12.5px; color:var(--text-dim);}
+  .form-status.ok{color:var(--accent);}
+  .form-status.err{color:#fb7185;}
 
   footer{padding:30px 0 50px; text-align:center; font-family:var(--mono); font-size:11.5px; color:var(--text-faint);}
 
@@ -415,6 +438,31 @@
           <div><div class="contact-k">GitHub</div><div class="contact-v">dasturlashcurssalohiddin-collab</div></div>
         </a>
       </div>
+
+      <form class="contact-form" id="contactForm" data-animate>
+        <div class="form-row">
+          <div class="field">
+            <label for="cf-name">Ism</label>
+            <input type="text" id="cf-name" name="name" placeholder="Ismingiz" required maxlength="80">
+          </div>
+          <div class="field">
+            <label for="cf-phone">Telefon raqam</label>
+            <input type="tel" id="cf-phone" name="phone" placeholder="+998 90 123 45 67" required maxlength="30">
+          </div>
+        </div>
+        <div class="field">
+          <label for="cf-email">Gmail</label>
+          <input type="email" id="cf-email" name="email" placeholder="sizning@gmail.com" required maxlength="120">
+        </div>
+        <div class="field">
+          <label for="cf-message">Xabar</label>
+          <textarea id="cf-message" name="message" placeholder="Xabaringizni shu yerga yozing..." required maxlength="2000"></textarea>
+        </div>
+        <div class="form-footer">
+          <button type="submit" class="btn btn-primary" id="cf-submit">Yuborish</button>
+          <span class="form-status" id="cf-status"></span>
+        </div>
+      </form>
     </section>
 
   </main>
@@ -508,6 +556,75 @@
     document.querySelectorAll('.bar-fill').forEach((fill, i) => {
       setTimeout(() => { fill.style.width = fill.dataset.w + '%'; }, 200 + i * 90);
     });
+  });
+
+  // --- Contact form -> Telegram bot ---
+  // ESLATMA: Bot token shu yerda ochiq ko'rinadi (client-side), chunki bu oddiy statik sayt.
+  // Xohlasangiz keyinroq buni server/serverless funksiya orqali yashirishga yordam beraman.
+  const TG_BOT_TOKEN = '8997665707:AAGSjMKry19WhXeMht96JEL_KwDFqA0STXo';
+  const TG_CHAT_ID = '6283517295';
+
+  const cfForm = document.getElementById('contactForm');
+  const cfStatus = document.getElementById('cf-status');
+  const cfSubmit = document.getElementById('cf-submit');
+
+  function escapeHtml(str){
+    return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  cfForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById('cf-name').value.trim();
+    const phone = document.getElementById('cf-phone').value.trim();
+    const email = document.getElementById('cf-email').value.trim();
+    const message = document.getElementById('cf-message').value.trim();
+
+    if(!name || !phone || !email || !message){
+      cfStatus.textContent = 'Barcha maydonlarni to\'ldiring.';
+      cfStatus.className = 'form-status err';
+      return;
+    }
+
+    const text =
+`📩 Yangi xabar — portfolio sayt
+
+👤 Ism: ${name}
+📞 Telefon: ${phone}
+✉️ Gmail: ${email}
+
+💬 Xabar:
+${message}`;
+
+    cfSubmit.disabled = true;
+    cfStatus.textContent = 'Yuborilmoqda...';
+    cfStatus.className = 'form-status';
+
+    try{
+      const res = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: TG_CHAT_ID,
+          text: text
+        })
+      });
+      const data = await res.json();
+
+      if(data.ok){
+        cfStatus.textContent = 'Xabaringiz yuborildi! Rahmat.';
+        cfStatus.className = 'form-status ok';
+        cfForm.reset();
+      } else {
+        cfStatus.textContent = 'Xatolik yuz berdi. Qayta urinib ko\'ring.';
+        cfStatus.className = 'form-status err';
+      }
+    } catch(err){
+      cfStatus.textContent = 'Internetga ulanishda xatolik.';
+      cfStatus.className = 'form-status err';
+    } finally {
+      cfSubmit.disabled = false;
+    }
   });
 </script>
 </body>
