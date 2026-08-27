@@ -201,6 +201,32 @@
   .project-links a{font-family:var(--mono); font-size:12px; color:var(--text); border-bottom:1px solid var(--line); padding-bottom:2px; transition:border-color .2s, color .2s;}
   .project-links a:hover{color:var(--accent); border-color:var(--accent);}
 
+  /* ---- achievements / yutuqlar ---- */
+  .achv-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:18px;}
+  .achv-card{
+    border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;
+    background:var(--bg-elev); cursor:pointer; transition:border-color .2s, transform .2s;
+  }
+  .achv-card:hover{border-color:var(--accent); transform:translateY(-3px);}
+  .achv-thumb{width:100%; aspect-ratio:3/4; overflow:hidden; background:var(--bg-elev-2);}
+  .achv-thumb img{width:100%; height:100%; object-fit:cover; display:block;}
+  .achv-body{padding:14px 16px;}
+  .achv-title{font-family:var(--display); font-weight:600; font-size:14.5px; margin-bottom:3px;}
+  .achv-sub{font-family:var(--mono); font-size:11px; color:var(--text-faint);}
+
+  /* lightbox for achievement images */
+  .lightbox{
+    position:fixed; inset:0; background:rgba(0,0,0,.86); display:none;
+    align-items:center; justify-content:center; z-index:120; padding:30px;
+  }
+  .lightbox.open{display:flex;}
+  .lightbox img{max-width:100%; max-height:100%; border-radius:8px; box-shadow:0 10px 40px rgba(0,0,0,.5);}
+  .lightbox-close{
+    position:absolute; top:20px; right:24px; width:36px; height:36px;
+    border:1px solid rgba(255,255,255,.25); border-radius:8px; color:#fff;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; font-family:var(--mono);
+  }
+
   /* ---- contact ---- */
   .contact-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px;}
   .contact-card{
@@ -292,6 +318,7 @@
           <a href="#about">about</a>
           <a href="#skills">skills</a>
           <a href="#projects">projects</a>
+          <a href="#achievements">yutuqlar</a>
           <a href="#contact">contact</a>
         </nav>
         <div class="settings-btn" id="settingsBtn" title="Sozlamalar" role="button" aria-label="Sozlamalarni ochish" tabindex="0">
@@ -418,8 +445,35 @@
       </div>
     </section>
 
+    <section id="achievements">
+      <div class="sec-head"><span class="sec-num">06</span><span class="sec-title">Yutuqlar</span></div>
+      <div class="achv-grid">
+        <div class="achv-card" data-animate data-full="yutuq1.jpg">
+          <div class="achv-thumb"><img src="yutuq1.jpg" alt="Robbit sertifikati — ochiq ko'rinish" loading="lazy"></div>
+          <div class="achv-body">
+            <div class="achv-title">Robbit sertifikati</div>
+            <div class="achv-sub">Robototexnika va dasturlash · 17.08.2026</div>
+          </div>
+        </div>
+        <div class="achv-card" data-animate data-full="yutuq2.jpg">
+          <div class="achv-thumb"><img src="yutuq2.jpg" alt="Robbit sertifikati muqovasi" loading="lazy"></div>
+          <div class="achv-body">
+            <div class="achv-title">Sertifikat muqovasi</div>
+            <div class="achv-sub">Robbit akademiyasi</div>
+          </div>
+        </div>
+        <div class="achv-card" data-animate data-full="yutuq3.jpg">
+          <div class="achv-thumb"><img src="yutuq3.jpg" alt="Robbit sertifikati ramkada" loading="lazy"></div>
+          <div class="achv-body">
+            <div class="achv-title">Ramkadagi sertifikat</div>
+            <div class="achv-sub">Farg'ona filiali</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section id="contact">
-      <div class="sec-head"><span class="sec-num">06</span><span class="sec-title">Bog'lanish</span></div>
+      <div class="sec-head"><span class="sec-num">07</span><span class="sec-title">Bog'lanish</span></div>
       <div class="contact-grid">
         <a class="contact-card" href="tel:+998951000130" data-animate>
           <svg class="contact-icon" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
@@ -468,6 +522,11 @@
   </main>
 
   <footer>© 2026 Teshaboyev Salohiddin — barcha huquqlar himoyalangan.</footer>
+
+  <div class="lightbox" id="lightbox">
+    <div class="lightbox-close" id="lightboxClose">✕</div>
+    <img id="lightboxImg" src="" alt="Yutuq rasmi">
+  </div>
 
   <div class="overlay" id="overlay"></div>
   <aside class="panel" id="panel" aria-label="Sozlamalar paneli">
@@ -558,6 +617,21 @@
     });
   });
 
+  // achievements lightbox
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightboxImg');
+  const lightboxClose = document.getElementById('lightboxClose');
+  document.querySelectorAll('.achv-card').forEach(card => {
+    card.addEventListener('click', () => {
+      lightboxImg.src = card.dataset.full;
+      lightbox.classList.add('open');
+    });
+  });
+  function closeLightbox(){ lightbox.classList.remove('open'); lightboxImg.src=''; }
+  lightboxClose.addEventListener('click', closeLightbox);
+  lightbox.addEventListener('click', e => { if(e.target === lightbox) closeLightbox(); });
+  document.addEventListener('keydown', e => { if(e.key === 'Escape') closeLightbox(); });
+
   // --- Contact form -> Telegram bot ---
   // ESLATMA: Bot token shu yerda ochiq ko'rinadi (client-side), chunki bu oddiy statik sayt.
   // Xohlasangiz keyinroq buni server/serverless funksiya orqali yashirishga yordam beraman.
@@ -631,4 +705,3 @@ ${message}`;
 </script>
 </body>
 </html>
- 
