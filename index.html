@@ -24,10 +24,12 @@
     --accent: #4fd1c5;
     --accent-soft: rgba(79,209,197,0.12);
     --accent-text: #07140f;
-    --radius: 10px;
+    --radius: 12px;
     --mono: 'JetBrains Mono', monospace;
     --display: 'Space Grotesk', sans-serif;
     --body: 'Inter', sans-serif;
+    /* spacing scale — every section uses these, nothing is a one-off number */
+    --sp-1: 8px; --sp-2: 14px; --sp-3: 22px; --sp-4: 34px; --sp-5: 54px; --sp-6: 86px;
   }
   [data-theme="light"]{
     --bg: #f5f3ee;
@@ -50,7 +52,7 @@
     background:var(--bg);
     color:var(--text);
     font-family:var(--body);
-    line-height:1.55;
+    line-height:1.6;
     transition:background .35s ease, color .35s ease;
     overflow-x:hidden;
   }
@@ -75,60 +77,74 @@
     display:flex; align-items:center; justify-content:space-between;
     height:52px; font-family:var(--mono); font-size:12.5px; color:var(--text-dim);
   }
-  .statusbar-left{display:flex; align-items:center; gap:10px;}
-  .dot{width:7px; height:7px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 3px var(--accent-soft);}
-  .statusbar-right{display:flex; align-items:center; gap:18px;}
+  .statusbar-left{display:flex; align-items:center; gap:10px; min-width:0;}
+  .statusbar-left span:nth-child(2){white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .dot{width:7px; height:7px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); flex:none;}
+  .statusbar-right{display:flex; align-items:center; gap:16px;}
   .clock{letter-spacing:0.02em;}
-  .settings-btn{
+  .icon-btn{
     width:30px; height:30px; display:flex; align-items:center; justify-content:center;
     border:1px solid var(--line); border-radius:8px; background:var(--bg-elev);
-    cursor:pointer; transition:border-color .2s, transform .4s;
+    cursor:pointer; transition:border-color .2s, transform .4s; flex:none;
   }
-  .settings-btn:hover{border-color:var(--accent);}
-  .settings-btn.spin svg{transform:rotate(75deg);}
-  .settings-btn svg{transition:transform .4s ease; stroke:var(--text-dim); width:15px; height:15px;}
+  .icon-btn:hover{border-color:var(--accent);}
+  .icon-btn svg{stroke:var(--text-dim); width:15px; height:15px;}
+  #settingsBtn.spin svg{transform:rotate(75deg); transition:transform .4s ease;}
 
   /* ---- nav ---- */
   nav{display:flex; gap:22px;}
   nav a{font-size:12.5px; color:var(--text-dim); transition:color .2s;}
   nav a:hover{color:var(--text);}
+  .nav-toggle{display:none;}
+  .mobile-nav{
+    display:none; flex-direction:column; gap:2px;
+    max-height:0; overflow:hidden; border-bottom:1px solid var(--line);
+    transition:max-height .25s ease;
+  }
+  .mobile-nav.open{max-height:260px;}
+  .mobile-nav a{
+    padding:13px 24px; font-family:var(--mono); font-size:13px; color:var(--text-dim);
+    border-top:1px solid var(--line);
+  }
+  .mobile-nav a:active{color:var(--accent);}
+
+  /* ---- section shell : identical rhythm everywhere ---- */
+  section{padding:var(--sp-6) 0; border-top:1px solid var(--line);}
+  .sec-head{display:flex; align-items:baseline; gap:var(--sp-2); margin-bottom:var(--sp-4);}
+  .sec-num{font-family:var(--mono); font-size:12px; color:var(--accent); flex:none;}
+  .sec-title{font-family:var(--display); font-weight:600; font-size:22px; letter-spacing:-0.01em;}
+  .sec-rule{flex:1; height:1px; background:var(--line); margin-left:var(--sp-1);}
+  .sec-kicker{color:var(--text-faint); font-size:13.5px; margin:-18px 0 var(--sp-4); max-width:52ch;}
 
   /* ---- hero ---- */
-  .hero{padding:88px 0 70px; position:relative;}
-  .hero-top{display:flex; align-items:flex-start; gap:34px; flex-wrap:wrap;}
+  .hero{padding:var(--sp-6) 0 var(--sp-5); border-top:none; position:relative;}
+  .hero-top{display:flex; align-items:flex-start; gap:var(--sp-4); flex-wrap:wrap;}
   .hero-photo{
-    flex:none; width:200px; height:200px; border-radius:var(--radius);
+    flex:none; width:190px; height:190px; border-radius:var(--radius);
     overflow:hidden; border:2px solid var(--line);
     box-shadow:0 0 0 6px var(--accent-soft);
   }
   .hero-photo img{width:100%; height:100%; object-fit:cover; display:block;}
-  @media (max-width:560px){
-    .hero-photo{width:150px; height:150px;}
-  }
   .eyebrow{
     font-family:var(--mono); font-size:12.5px; color:var(--accent);
-    display:flex; align-items:center; gap:8px; margin-bottom:22px;
+    display:flex; align-items:center; gap:8px; margin-bottom:var(--sp-3);
   }
   .eyebrow::before{content:''; width:18px; height:1px; background:var(--accent);}
   h1{
     font-family:var(--display); font-weight:700;
-    font-size:clamp(38px, 6vw, 64px); line-height:1.04; letter-spacing:-0.02em;
+    font-size:clamp(34px, 6vw, 58px); line-height:1.05; letter-spacing:-0.02em;
     max-width:11ch;
   }
   .cursor{display:inline-block; width:.5ch; background:var(--accent); animation:blink 1.1s steps(1) infinite; margin-left:2px;}
   @keyframes blink{50%{opacity:0;}}
-  .hero-sub{
-    margin-top:20px; font-size:17px; color:var(--text-dim); max-width:46ch;
-  }
-  .hero-meta{
-    margin-top:34px; display:flex; flex-wrap:wrap; gap:10px;
-  }
+  .hero-sub{margin-top:var(--sp-3); font-size:16.5px; color:var(--text-dim); max-width:46ch;}
+  .hero-meta{margin-top:var(--sp-3); display:flex; flex-wrap:wrap; gap:10px;}
   .chip{
     font-family:var(--mono); font-size:12px; color:var(--text-dim);
     border:1px solid var(--line); padding:6px 12px; border-radius:999px;
-    background:var(--bg-elev);
+    background:var(--bg-elev); display:inline-flex; align-items:center; gap:6px;
   }
-  .hero-actions{margin-top:34px; display:flex; gap:12px; flex-wrap:wrap;}
+  .hero-actions{margin-top:var(--sp-4); display:flex; gap:12px; flex-wrap:wrap;}
   .btn{
     font-family:var(--mono); font-size:13px; padding:11px 20px; border-radius:8px;
     border:1px solid var(--line); transition:all .2s ease; display:inline-flex; align-items:center; gap:8px;
@@ -140,81 +156,88 @@
   .btn-ghost{color:var(--text); background:transparent;}
   .btn-ghost:hover{border-color:var(--accent); color:var(--accent);}
 
-  /* ---- section shell ---- */
-  section{padding:64px 0; border-top:1px solid var(--line);}
-  .sec-head{display:flex; align-items:baseline; gap:14px; margin-bottom:34px;}
-  .sec-num{font-family:var(--mono); font-size:12px; color:var(--text-faint);}
-  .sec-title{font-family:var(--display); font-weight:600; font-size:24px; letter-spacing:-0.01em;}
-
   /* ---- about ---- */
-  .about-grid{display:grid; grid-template-columns:1.3fr 1fr; gap:40px;}
-  @media (max-width:720px){.about-grid{grid-template-columns:1fr;}}
-  .about-text p{color:var(--text-dim); font-size:15px; margin-bottom:14px;}
+  .about-grid{display:grid; grid-template-columns:1.3fr 1fr; gap:var(--sp-4); align-items:start;}
+  .about-text p{color:var(--text-dim); font-size:15px; margin-bottom:var(--sp-2);}
   .about-text strong{color:var(--text); font-weight:600;}
-  .facts{display:flex; flex-direction:column; gap:0; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; background:var(--bg-elev); height:fit-content;}
-  .fact{display:flex; justify-content:space-between; padding:13px 16px; font-size:13px; border-bottom:1px solid var(--line);}
+  .facts{display:flex; flex-direction:column; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; background:var(--bg-elev);}
+  .fact{display:flex; justify-content:space-between; gap:10px; padding:13px 16px; font-size:13px; border-bottom:1px solid var(--line);}
   .fact:last-child{border-bottom:none;}
-  .fact-k{color:var(--text-faint); font-family:var(--mono); font-size:11.5px; text-transform:uppercase; letter-spacing:.04em;}
+  .fact-k{color:var(--text-faint); font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.04em; flex:none;}
   .fact-v{color:var(--text); font-weight:500; text-align:right;}
 
-  /* ---- skills ---- */
-  .skills-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:14px;}
-  .skill-card{
-    border:1px solid var(--line); border-radius:var(--radius); padding:18px;
-    background:var(--bg-elev); position:relative; overflow:hidden;
-  }
-  .skill-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;}
-  .skill-name{font-family:var(--display); font-weight:600; font-size:15px;}
-  .skill-level{font-family:var(--mono); font-size:11px; color:var(--accent);}
+  /* ---- skills : grouped by category so the grid reads as organized, not scattered ---- */
+  .skills-group{margin-bottom:var(--sp-3);}
+  .skills-group:last-child{margin-bottom:0;}
+  .skills-group-label{font-family:var(--mono); font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.06em; margin-bottom:12px;}
+  .skills-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(190px,1fr)); gap:12px;}
+  .skill-card{border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px; background:var(--bg-elev);}
+  .skill-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
+  .skill-name{font-family:var(--display); font-weight:600; font-size:14.5px;}
+  .skill-level{font-family:var(--mono); font-size:10.5px; color:var(--accent);}
   .bar{height:4px; background:var(--bg-elev-2); border-radius:2px; overflow:hidden;}
   .bar-fill{height:100%; background:var(--accent); border-radius:2px; width:0; transition:width 1s cubic-bezier(.2,.8,.2,1);}
 
   /* ---- interests ---- */
   .interest-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
-  @media (max-width:600px){.interest-grid{grid-template-columns:1fr;}}
   .interest-card{
     border:1px solid var(--line); border-radius:var(--radius); padding:22px;
     background:var(--bg-elev); display:flex; gap:16px; align-items:flex-start;
   }
-  .interest-icon{flex:none; width:38px; height:38px; stroke:var(--accent); fill:none;}
-  .interest-card h3{font-family:var(--display); font-size:16px; margin-bottom:6px;}
+  .interest-icon{flex:none; width:34px; height:34px; stroke:var(--accent); fill:none;}
+  .interest-card h3{font-family:var(--display); font-size:15px; margin-bottom:6px;}
   .interest-card p{font-size:13.5px; color:var(--text-dim);}
 
-  /* ---- education / timeline ---- */
-  .timeline{display:flex; flex-direction:column;}
-  .tl-item{display:grid; grid-template-columns:120px 1fr; gap:20px; padding:18px 0; border-bottom:1px solid var(--line);}
-  .tl-item:last-child{border-bottom:none;}
-  .tl-date{font-family:var(--mono); font-size:12px; color:var(--accent);}
-  .tl-title{font-weight:600; font-size:15px; margin-bottom:4px;}
-  .tl-desc{font-size:13.5px; color:var(--text-dim);}
-
-  /* ---- projects ---- */
-  .project-card{
-    border:1px solid var(--line); border-radius:var(--radius); padding:24px;
-    background:var(--bg-elev); display:flex; flex-direction:column; gap:14px;
+  /* ---- education : one compact status card instead of a two-item "timeline" ---- */
+  .status-card{
+    border:1px solid var(--line); border-radius:var(--radius); background:var(--bg-elev); overflow:hidden;
   }
-  .project-head{display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;}
-  .project-title{font-family:var(--display); font-weight:600; font-size:18px;}
+  .status-row{display:flex; gap:var(--sp-3); align-items:flex-start; padding:20px 22px; border-bottom:1px solid var(--line);}
+  .status-row:last-child{border-bottom:none;}
+  .status-mark{flex:none; width:8px; height:8px; border-radius:50%; background:var(--accent); margin-top:7px; box-shadow:0 0 0 3px var(--accent-soft);}
+  .status-title{font-weight:600; font-size:15px; margin-bottom:4px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  .status-tag{font-family:var(--mono); font-size:10.5px; color:var(--text-faint); border:1px solid var(--line); padding:2px 8px; border-radius:999px;}
+  .status-desc{font-size:13.5px; color:var(--text-dim);}
+
+  /* ---- projects : one project, treated as a spotlight rather than a stray card ---- */
+  .projects-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(340px,1fr)); gap:16px;}
+  .project-spotlight{
+    border:1px solid var(--line); border-radius:var(--radius); background:var(--bg-elev);
+    display:grid; grid-template-columns:2fr 1fr; overflow:hidden;
+  }
+  .project-main{padding:28px; display:flex; flex-direction:column; gap:14px; justify-content:center;}
+  .project-head{display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
+  .project-title{font-family:var(--display); font-weight:600; font-size:20px;}
   .project-tag{font-family:var(--mono); font-size:10.5px; color:var(--accent); border:1px solid var(--accent); padding:3px 9px; border-radius:999px;}
-  .project-desc{color:var(--text-dim); font-size:14px;}
-  .project-links{display:flex; gap:10px; margin-top:4px;}
+  .project-desc{color:var(--text-dim); font-size:14.5px; max-width:48ch;}
+  .project-links{display:flex; gap:10px; margin-top:4px; flex-wrap:wrap;}
   .project-links a{font-family:var(--mono); font-size:12px; color:var(--text); border-bottom:1px solid var(--line); padding-bottom:2px; transition:border-color .2s, color .2s;}
   .project-links a:hover{color:var(--accent); border-color:var(--accent);}
+  .project-side{
+    background:var(--bg-elev-2); border-left:1px solid var(--line);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:24px;
+    font-family:var(--mono); text-align:center;
+  }
+  .project-side .n{font-size:34px; font-weight:600; color:var(--accent); font-family:var(--display);}
+  .project-side .l{font-size:10.5px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.05em;}
+  @media (max-width:640px){
+    .project-spotlight{grid-template-columns:1fr;}
+    .project-side{border-left:none; border-top:1px solid var(--line); flex-direction:row; justify-content:space-around;}
+  }
 
-  /* ---- achievements / yutuqlar ---- */
-  .achv-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:18px;}
+  /* ---- achievements ---- */
+  .achv-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:16px;}
   .achv-card{
     border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;
     background:var(--bg-elev); cursor:pointer; transition:border-color .2s, transform .2s;
   }
   .achv-card:hover{border-color:var(--accent); transform:translateY(-3px);}
-  .achv-thumb{width:100%; aspect-ratio:3/4; overflow:hidden; background:var(--bg-elev-2);}
+  .achv-thumb{width:100%; aspect-ratio:4/3; overflow:hidden; background:var(--bg-elev-2);}
   .achv-thumb img{width:100%; height:100%; object-fit:cover; display:block;}
-  .achv-body{padding:14px 16px;}
-  .achv-title{font-family:var(--display); font-weight:600; font-size:14.5px; margin-bottom:3px;}
-  .achv-sub{font-family:var(--mono); font-size:11px; color:var(--text-faint);}
+  .achv-body{padding:13px 15px;}
+  .achv-title{font-family:var(--display); font-weight:600; font-size:14px; margin-bottom:3px;}
+  .achv-sub{font-family:var(--mono); font-size:10.5px; color:var(--text-faint);}
 
-  /* lightbox for achievement images */
   .lightbox{
     position:fixed; inset:0; background:rgba(0,0,0,.86); display:none;
     align-items:center; justify-content:center; z-index:120; padding:30px;
@@ -228,24 +251,23 @@
   }
 
   /* ---- contact ---- */
-  .contact-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px;}
+  .contact-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; margin-bottom:var(--sp-4);}
   .contact-card{
-    border:1px solid var(--line); border-radius:var(--radius); padding:18px;
-    background:var(--bg-elev); display:flex; align-items:center; gap:14px;
+    border:1px solid var(--line); border-radius:var(--radius); padding:16px;
+    background:var(--bg-elev); display:flex; align-items:center; gap:13px;
     transition:border-color .2s, transform .2s;
   }
   .contact-card:hover{border-color:var(--accent); transform:translateY(-2px);}
-  .contact-icon{flex:none; width:18px; height:18px; stroke:var(--accent); fill:none;}
-  .contact-k{font-family:var(--mono); font-size:10.5px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.05em; margin-bottom:3px;}
-  .contact-v{font-size:14px; font-weight:500;}
+  .contact-icon{flex:none; width:17px; height:17px; stroke:var(--accent); fill:none;}
+  .contact-k{font-family:var(--mono); font-size:10px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.05em; margin-bottom:3px;}
+  .contact-v{font-size:13.5px; font-weight:500;}
 
-  /* ---- contact form ---- */
   .contact-form{
     border:1px solid var(--line); border-radius:var(--radius); padding:26px;
-    background:var(--bg-elev); margin-top:20px; display:flex; flex-direction:column; gap:16px;
+    background:var(--bg-elev); display:flex; flex-direction:column; gap:16px;
   }
+  .contact-form-label{font-family:var(--mono); font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px;}
   .form-row{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
-  @media (max-width:600px){.form-row{grid-template-columns:1fr;}}
   .field{display:flex; flex-direction:column; gap:7px;}
   .field label{font-family:var(--mono); font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.05em;}
   .field input, .field textarea{
@@ -260,7 +282,7 @@
   .form-status.ok{color:var(--accent);}
   .form-status.err{color:#fb7185;}
 
-  footer{padding:30px 0 50px; text-align:center; font-family:var(--mono); font-size:11.5px; color:var(--text-faint);}
+  footer{padding:var(--sp-4) 0 50px; text-align:center; font-family:var(--mono); font-size:11.5px; color:var(--text-faint);}
 
   /* ---- settings panel ---- */
   .overlay{
@@ -296,11 +318,20 @@
   ::-webkit-scrollbar-track{background:var(--bg);}
   ::-webkit-scrollbar-thumb{background:var(--line); border-radius:5px;}
 
-  [data-animate]{opacity:1;}
-
+  @media (max-width:720px){
+    .about-grid{grid-template-columns:1fr;}
+  }
   @media (max-width:600px){
+    .interest-grid{grid-template-columns:1fr;}
+    .form-row{grid-template-columns:1fr;}
     nav{display:none;}
-    .hero{padding:54px 0 46px;}
+    .nav-toggle{display:flex;}
+    .mobile-nav{display:flex;}
+    .hero{padding:var(--sp-5) 0 var(--sp-4);}
+    section{padding:var(--sp-5) 0;}
+  }
+  @media (max-width:560px){
+    .hero-photo{width:140px; height:140px;}
   }
 </style>
 </head>
@@ -321,16 +352,26 @@
           <a href="#achievements">yutuqlar</a>
           <a href="#contact">contact</a>
         </nav>
-        <div class="settings-btn" id="settingsBtn" title="Sozlamalar" role="button" aria-label="Sozlamalarni ochish" tabindex="0">
+        <div class="icon-btn nav-toggle" id="navToggle" role="button" aria-label="Menyu" tabindex="0">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </div>
+        <div class="icon-btn" id="settingsBtn" title="Sozlamalar" role="button" aria-label="Sozlamalarni ochish" tabindex="0">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
         </div>
       </div>
+    </div>
+    <div class="mobile-nav" id="mobileNav">
+      <a href="#about">about</a>
+      <a href="#skills">skills</a>
+      <a href="#projects">projects</a>
+      <a href="#achievements">yutuqlar</a>
+      <a href="#contact">contact</a>
     </div>
   </div>
 
   <main class="wrap">
 
-    <section class="hero" style="border-top:none;">
+    <section class="hero">
       <div class="hero-top">
         <div class="hero-photo"><img src="foto.jpg" alt="Teshaboyev Salohiddin"></div>
         <div>
@@ -351,14 +392,14 @@
     </section>
 
     <section id="about">
-      <div class="sec-head"><span class="sec-num">01</span><span class="sec-title">Men haqimda</span></div>
+      <div class="sec-head"><span class="sec-num">01</span><span class="sec-title">Men haqimda</span><span class="sec-rule"></span></div>
       <div class="about-grid">
-        <div class="about-text" data-animate>
+        <div class="about-text">
           <p><strong>Salom!</strong> Men Teshaboyev Salohiddin — dasturlash va texnologiyalarga qiziquvchi o'quvchiman. Hozirda <strong>Robototexnika to'garagi</strong>da bilim olib, shu bilan birga mustaqil ravishda Python va C++ asosida loyihalar ustida ishlayman.</p>
           <p>Eng katta qiziqishlarimdan biri — <strong>IT</strong> sohasi: dasturlash, botlar yaratish va veb-saytlar qurish. Bundan tashqari <strong>qushlarga</strong> alohida qiziqishim bor — tabiat va texnologiya o'rtasidagi muvozanat menga ilhom beradi.</p>
           <p>Maqsadim — bilim va ko'nikmalarimni rivojlantirib, kelajakda yirik loyihalar va musobaqalarda ishtirok etish.</p>
         </div>
-        <div class="facts" data-animate>
+        <div class="facts">
           <div class="fact"><span class="fact-k">Ism</span><span class="fact-v">Teshaboyev Salohiddin</span></div>
           <div class="fact"><span class="fact-k">Tug'ilgan sana</span><span class="fact-v">30.01.2013</span></div>
           <div class="fact"><span class="fact-k">Maktab</span><span class="fact-v">10-IDUM</span></div>
@@ -369,47 +410,63 @@
     </section>
 
     <section id="skills">
-      <div class="sec-head"><span class="sec-num">02</span><span class="sec-title">Bilim va ko'nikmalar</span></div>
-      <div class="skills-grid">
-        <div class="skill-card" data-animate>
-          <div class="skill-top"><span class="skill-name">Python</span><span class="skill-level">asosiy</span></div>
-          <div class="bar"><div class="bar-fill" data-w="85"></div></div>
+      <div class="sec-head"><span class="sec-num">02</span><span class="sec-title">Bilim va ko'nikmalar</span><span class="sec-rule"></span></div>
+
+      <div class="skills-group">
+        <div class="skills-group-label">Dasturlash tillari</div>
+        <div class="skills-grid">
+          <div class="skill-card">
+            <div class="skill-top"><span class="skill-name">Python</span><span class="skill-level">asosiy</span></div>
+            <div class="bar"><div class="bar-fill" data-w="85"></div></div>
+          </div>
+          <div class="skill-card">
+            <div class="skill-top"><span class="skill-name">C++</span><span class="skill-level">o'rganilmoqda</span></div>
+            <div class="bar"><div class="bar-fill" data-w="55"></div></div>
+          </div>
+          <div class="skill-card">
+            <div class="skill-top"><span class="skill-name">JavaScript</span><span class="skill-level">o'rganilmoqda</span></div>
+            <div class="bar"><div class="bar-fill" data-w="50"></div></div>
+          </div>
         </div>
-        <div class="skill-card" data-animate>
-          <div class="skill-top"><span class="skill-name">C++</span><span class="skill-level">o'rganilmoqda</span></div>
-          <div class="bar"><div class="bar-fill" data-w="55"></div></div>
+      </div>
+
+      <div class="skills-group">
+        <div class="skills-group-label">Web</div>
+        <div class="skills-grid">
+          <div class="skill-card">
+            <div class="skill-top"><span class="skill-name">HTML</span><span class="skill-level">yaxshi</span></div>
+            <div class="bar"><div class="bar-fill" data-w="75"></div></div>
+          </div>
+          <div class="skill-card">
+            <div class="skill-top"><span class="skill-name">CSS</span><span class="skill-level">yaxshi</span></div>
+            <div class="bar"><div class="bar-fill" data-w="70"></div></div>
+          </div>
         </div>
-        <div class="skill-card" data-animate>
-          <div class="skill-top"><span class="skill-name">HTML</span><span class="skill-level">yaxshi</span></div>
-          <div class="bar"><div class="bar-fill" data-w="75"></div></div>
-        </div>
-        <div class="skill-card" data-animate>
-          <div class="skill-top"><span class="skill-name">CSS</span><span class="skill-level">yaxshi</span></div>
-          <div class="bar"><div class="bar-fill" data-w="70"></div></div>
-        </div>
-        <div class="skill-card" data-animate>
-          <div class="skill-top"><span class="skill-name">JavaScript</span><span class="skill-level">o'rganilmoqda</span></div>
-          <div class="bar"><div class="bar-fill" data-w="50"></div></div>
-        </div>
-        <div class="skill-card" data-animate>
-          <div class="skill-top"><span class="skill-name">Video tahrirlash</span><span class="skill-level">yaxshi</span></div>
-          <div class="bar"><div class="bar-fill" data-w="70"></div></div>
-        </div>
-        <div class="skill-card" data-animate>
-          <div class="skill-top"><span class="skill-name">Photopea</span><span class="skill-level">yaxshi</span></div>
-          <div class="bar"><div class="bar-fill" data-w="70"></div></div>
+      </div>
+
+      <div class="skills-group">
+        <div class="skills-group-label">Vositalar</div>
+        <div class="skills-grid">
+          <div class="skill-card">
+            <div class="skill-top"><span class="skill-name">Video tahrirlash</span><span class="skill-level">yaxshi</span></div>
+            <div class="bar"><div class="bar-fill" data-w="70"></div></div>
+          </div>
+          <div class="skill-card">
+            <div class="skill-top"><span class="skill-name">Photopea</span><span class="skill-level">yaxshi</span></div>
+            <div class="bar"><div class="bar-fill" data-w="70"></div></div>
+          </div>
         </div>
       </div>
     </section>
 
     <section id="interests">
-      <div class="sec-head"><span class="sec-num">03</span><span class="sec-title">Qiziqishlar</span></div>
+      <div class="sec-head"><span class="sec-num">03</span><span class="sec-title">Qiziqishlar</span><span class="sec-rule"></span></div>
       <div class="interest-grid">
-        <div class="interest-card" data-animate>
+        <div class="interest-card">
           <svg class="interest-icon" viewBox="0 0 24 24" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"></rect><path d="M7 21h10M12 18v3M3 9h18"></path></svg>
           <div><h3>IT va dasturlash</h3><p>Botlar, veb-saytlar va ESP32 asosidagi qurilmalar yaratish jarayoni meni eng ko'p qiziqtiradi.</p></div>
         </div>
-        <div class="interest-card" data-animate>
+        <div class="interest-card">
           <svg class="interest-icon" viewBox="0 0 24 24" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 7c-2 0-3.5 1-4.5 2.5C10 7 7 6 4 7c1 4 3 6 6 7-1 2-3 3-3 3 2.5 1 5-0.5 6-2 1.5 1 4 1.5 6 0.5-1-1.5-2-2.5-3.5-3 2-1 3-2.5 3.5-5-2 0-3 0.3-3 0.3"></path></svg>
           <div><h3>Qushlar</h3><p>Qushlarning xilma-xilligi va tabiatdagi tartibi meni doim hayratga soladi — bu mening tinchlanish manbaim.</p></div>
         </div>
@@ -417,52 +474,91 @@
     </section>
 
     <section id="education">
-      <div class="sec-head"><span class="sec-num">04</span><span class="sec-title">Ta'lim</span></div>
-      <div class="timeline" data-animate>
-        <div class="tl-item">
-          <span class="tl-date">Hozirgi</span>
-          <div><div class="tl-title">10-IDUM</div><p class="tl-desc">Ixtisoslashtirilgan davlat umumta'lim maktabida tahsil olmoqdaman.</p></div>
+      <div class="sec-head"><span class="sec-num">04</span><span class="sec-title">Ta'lim</span><span class="sec-rule"></span></div>
+      <div class="status-card">
+        <div class="status-row">
+          <span class="status-mark"></span>
+          <div>
+            <div class="status-title">10-IDUM <span class="status-tag">hozirgi</span></div>
+            <p class="status-desc">Ixtisoslashtirilgan davlat umumta'lim maktabida tahsil olmoqdaman.</p>
+          </div>
         </div>
-        <div class="tl-item">
-          <span class="tl-date">Qo'shimcha</span>
-          <div><div class="tl-title">Robbit</div><p class="tl-desc">Robbit to'garagida ESP32 va sensorlar bilan ishlashni o'rganmoqdaman.</p></div>
+        <div class="status-row">
+          <span class="status-mark"></span>
+          <div>
+            <div class="status-title">Robbit <span class="status-tag">qo'shimcha</span></div>
+            <p class="status-desc">Robbit to'garagida ESP32 va sensorlar bilan ishlashni o'rganmoqdaman.</p>
+          </div>
+        </div>
+        <div class="status-row">
+          <span class="status-mark"></span>
+          <div>
+            <div class="status-title">Deutschsmart School <span class="status-tag">qo'shimcha</span></div>
+            <p class="status-desc">Deutschsmart School'da (Toshkent) ta'lim olmoqdaman.</p>
+          </div>
         </div>
       </div>
     </section>
 
     <section id="projects">
-      <div class="sec-head"><span class="sec-num">05</span><span class="sec-title">Loyiha</span></div>
-      <div class="project-card" data-animate>
-        <div class="project-head">
-          <span class="project-title">Tuxum Market Bot</span>
-          <span class="project-tag">Telegram Bot</span>
+      <div class="sec-head"><span class="sec-num">05</span><span class="sec-title">Loyihalar</span><span class="sec-rule"></span></div>
+      <div class="projects-grid">
+        <div class="project-spotlight">
+          <div class="project-main">
+            <div class="project-head">
+              <span class="project-title">Tuxum Market Bot</span>
+              <span class="project-tag">Telegram Bot</span>
+            </div>
+            <p class="project-desc">Tuxum sotish uchun yaratilgan Telegram-bot — buyurtmalarni qabul qilish, mahsulotlar ro'yxati va admin panel funksiyalarini o'z ichiga oladi.</p>
+            <div class="project-links">
+              <a href="https://t.me/txum_bot" target="_blank" rel="noopener noreferrer">@txum_bot ↗</a>
+              <a href="https://github.com/dasturlashcurssalohiddin-collab" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+            </div>
+          </div>
+          <div class="project-side">
+            <span class="n">01</span>
+            <span class="l">Bot</span>
+          </div>
         </div>
-        <p class="project-desc">Tuxum sotish uchun yaratilgan Telegram-bot — buyurtmalarni qabul qilish, mahsulotlar ro'yxati va admin panel funksiyalarini o'z ichiga oladi.</p>
-        <div class="project-links">
-          <a href="https://t.me/txum_bot" target="_blank" rel="noopener noreferrer">@txum_bot ↗</a>
-          <a href="https://github.com/dasturlashcurssalohiddin-collab" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+
+        <div class="project-spotlight">
+          <div class="project-main">
+            <div class="project-head">
+              <span class="project-title">Lazzat CRM</span>
+              <span class="project-tag">Oshxona CRM</span>
+            </div>
+            <p class="project-desc">Restoran uchun raqamli menyu va CRM tizimi — mijoz, xodim va admin panellari, QR-kod orqali stol buyurtmasi va Telegram bot orqali buyurtma bildirishnomalarini o'z ichiga oladi.</p>
+            <div class="project-links">
+              <a href="https://remix-oshxona.ai.studio" target="_blank" rel="noopener noreferrer">Ko'rish ↗</a>
+              <a href="https://github.com/dasturlashcurssalohiddin-collab" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+            </div>
+          </div>
+          <div class="project-side">
+            <span class="n">02</span>
+            <span class="l">CRM</span>
+          </div>
         </div>
       </div>
     </section>
 
     <section id="achievements">
-      <div class="sec-head"><span class="sec-num">06</span><span class="sec-title">Yutuqlar</span></div>
+      <div class="sec-head"><span class="sec-num">06</span><span class="sec-title">Yutuqlar</span><span class="sec-rule"></span></div>
       <div class="achv-grid">
-        <div class="achv-card" data-animate data-full="yutuq1.jpg">
+        <div class="achv-card" data-full="yutuq1.jpg">
           <div class="achv-thumb"><img src="yutuq1.jpg" alt="Robbit sertifikati — ochiq ko'rinish" loading="lazy"></div>
           <div class="achv-body">
             <div class="achv-title">Robbit sertifikati</div>
             <div class="achv-sub">Robototexnika va dasturlash · 17.08.2026</div>
           </div>
         </div>
-        <div class="achv-card" data-animate data-full="yutuq2.jpg">
+        <div class="achv-card" data-full="yutuq2.jpg">
           <div class="achv-thumb"><img src="yutuq2.jpg" alt="Robbit sertifikati muqovasi" loading="lazy"></div>
           <div class="achv-body">
             <div class="achv-title">Sertifikat muqovasi</div>
             <div class="achv-sub">Robbit akademiyasi</div>
           </div>
         </div>
-        <div class="achv-card" data-animate data-full="yutuq3.jpg">
+        <div class="achv-card" data-full="yutuq3.jpg">
           <div class="achv-thumb"><img src="yutuq3.jpg" alt="Robbit sertifikati ramkada" loading="lazy"></div>
           <div class="achv-body">
             <div class="achv-title">Ramkadagi sertifikat</div>
@@ -473,27 +569,28 @@
     </section>
 
     <section id="contact">
-      <div class="sec-head"><span class="sec-num">07</span><span class="sec-title">Bog'lanish</span></div>
+      <div class="sec-head"><span class="sec-num">07</span><span class="sec-title">Bog'lanish</span><span class="sec-rule"></span></div>
       <div class="contact-grid">
-        <a class="contact-card" href="tel:+998951000130" data-animate>
+        <a class="contact-card" href="tel:+998951000130">
           <svg class="contact-icon" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
           <div><div class="contact-k">Telefon</div><div class="contact-v">+998 95 100 01 30</div></div>
         </a>
-        <a class="contact-card" href="https://t.me/salohiddinTm" target="_blank" rel="noopener noreferrer" data-animate>
+        <a class="contact-card" href="https://t.me/salohiddinTm" target="_blank" rel="noopener noreferrer">
           <svg class="contact-icon" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></svg>
           <div><div class="contact-k">Telegram</div><div class="contact-v">@salohiddinTm</div></div>
         </a>
-        <a class="contact-card" href="https://t.me/txum_bot" target="_blank" rel="noopener noreferrer" data-animate>
+        <a class="contact-card" href="https://t.me/txum_bot" target="_blank" rel="noopener noreferrer">
           <svg class="contact-icon" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4M8 16h.01M16 16h.01"></path></svg>
           <div><div class="contact-k">Telegram bot</div><div class="contact-v">@txum_bot</div></div>
         </a>
-        <a class="contact-card" href="https://github.com/dasturlashcurssalohiddin-collab" target="_blank" rel="noopener noreferrer" data-animate>
+        <a class="contact-card" href="https://github.com/dasturlashcurssalohiddin-collab" target="_blank" rel="noopener noreferrer">
           <svg class="contact-icon" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
           <div><div class="contact-k">GitHub</div><div class="contact-v">dasturlashcurssalohiddin-collab</div></div>
         </a>
       </div>
 
-      <form class="contact-form" id="contactForm" data-animate>
+      <form class="contact-form" id="contactForm">
+        <div class="contact-form-label">Xabar yuborish</div>
         <div class="form-row">
           <div class="field">
             <label for="cf-name">Ism</label>
@@ -554,7 +651,7 @@
   </aside>
 
 <script>
-  // --- Clickjacking himoyasi (fallback, chunki meta CSP frame-ancestors'ni qo'llamaydi) ---
+  // --- Clickjacking himoyasi ---
   if (window.top !== window.self) {
     window.top.location = window.self.location;
   }
@@ -565,6 +662,14 @@
     document.getElementById('clock').textContent = d.toLocaleTimeString('uz-UZ', {hour:'2-digit', minute:'2-digit'});
   }
   tick(); setInterval(tick, 1000 * 30);
+
+  // mobile nav
+  const mobileNav = document.getElementById('mobileNav');
+  const navToggle = document.getElementById('navToggle');
+  function toggleMobileNav(){ mobileNav.classList.toggle('open'); }
+  navToggle.addEventListener('click', toggleMobileNav);
+  navToggle.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggleMobileNav(); }});
+  mobileNav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => mobileNav.classList.remove('open')));
 
   // settings panel
   const body = document.body;
@@ -610,10 +715,10 @@
     if(savedAccent) setAccent(savedAccent);
   }catch(e){}
 
-  // skill bars fill shortly after load (no scroll-dependency, works reliably on all devices)
+  // skill bars fill shortly after load
   window.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.bar-fill').forEach((fill, i) => {
-      setTimeout(() => { fill.style.width = fill.dataset.w + '%'; }, 200 + i * 90);
+      setTimeout(() => { fill.style.width = fill.dataset.w + '%'; }, 200 + i * 70);
     });
   });
 
@@ -633,18 +738,12 @@
   document.addEventListener('keydown', e => { if(e.key === 'Escape') closeLightbox(); });
 
   // --- Contact form -> Telegram bot ---
-  // ESLATMA: Bot token shu yerda ochiq ko'rinadi (client-side), chunki bu oddiy statik sayt.
-  // Xohlasangiz keyinroq buni server/serverless funksiya orqali yashirishga yordam beraman.
   const TG_BOT_TOKEN = '8914064947:AAFrlRaskHUwwfERZXd4YhHIUPPsyVF2U4g';
   const TG_CHAT_ID = '6283517295';
 
   const cfForm = document.getElementById('contactForm');
   const cfStatus = document.getElementById('cf-status');
   const cfSubmit = document.getElementById('cf-submit');
-
-  function escapeHtml(str){
-    return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  }
 
   cfForm.addEventListener('submit', async (e) => {
     e.preventDefault();
